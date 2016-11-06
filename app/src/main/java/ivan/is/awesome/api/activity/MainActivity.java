@@ -4,6 +4,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -31,27 +33,44 @@ import ivan.is.awesome.api.util.ListAdapter;
 
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener{
     ProgressBar bar;
+    ImageView connection;
     ListView mDrawerList;
     String api_url = "http://pokeapi.co/api/v2/pokemon/";
     SearchView searchView;
     ListAdapter adapter;
+    int previous_pos =-1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         bar = (ProgressBar) findViewById(R.id.progressBar);
+        connection = (ImageView)findViewById((R.id.connection)) ;
         mDrawerList = (ListView)findViewById(R.id.list_view);
         adapter = new ListAdapter(this, new ArrayList<Pokemon>());
         mDrawerList.setAdapter(adapter);
-        RetrieveList task = new RetrieveList();
-        task.execute(api_url);
+        if(isNetworkAvailable(this)) {
+            RetrieveList task = new RetrieveList();
+            task.execute(api_url);
+        }else{
+            connection.setVisibility(View.VISIBLE);
+        }
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                for(int x=0; x<adapter.getCount(); x++){
+                    adapter.expand(x, false);
+                }
+                adapter.expand(position, true);
                 searchView.setIconified(true);
+
             }
         });
     }
+    public boolean isNetworkAvailable(final Context context) {
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
     public boolean onQueryTextSubmit(String query){
         return false;
     }

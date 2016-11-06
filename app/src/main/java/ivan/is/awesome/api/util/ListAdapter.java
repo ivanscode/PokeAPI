@@ -29,6 +29,12 @@ public class ListAdapter extends BaseAdapter implements Filterable {
         inflater = (LayoutInflater)a.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void expand(int position, boolean set){
+            Pokemon temp = filteredPokemon.get(position);
+            temp.setExpansion(set);
+            filteredPokemon.set(position, temp);
+        notifyDataSetChanged();
+    }
 
 
     public int getCount() {
@@ -36,7 +42,7 @@ public class ListAdapter extends BaseAdapter implements Filterable {
     }
 
     public Object getItem(int position) {
-        return position;
+        return filteredPokemon.get(position);
     }
 
     public long getItemId(int position) {
@@ -51,7 +57,12 @@ public class ListAdapter extends BaseAdapter implements Filterable {
 
     @SuppressLint({"ViewHolder", "InflateParams"})
     public View getView(int position, View convertView, ViewGroup parent) {
+        if(!filteredPokemon.get(position).isExpanded()) {
             convertView = inflater.inflate(R.layout.list_layout, null);
+        }
+        else{
+            convertView = inflater.inflate(R.layout.expanded_list_layout, null);
+        }
             TextView title = (TextView)convertView.findViewById(R.id.title); // title
             ImageView imageView = (ImageView)convertView.findViewById(R.id.list_image);
             imageView.setImageBitmap(filteredPokemon.get(position).getPic_pos());
