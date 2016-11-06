@@ -18,11 +18,13 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -38,7 +40,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     String api_url = "http://pokeapi.co/api/v2/pokemon/";
     SearchView searchView;
     ListAdapter adapter;
-    int previous_pos =-1;
+    long time;
+    boolean firstPressed = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +68,26 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
             }
         });
+    }
+    @Override
+    public void onBackPressed(){
+        if(!firstPressed){
+            time = System.currentTimeMillis();
+            firstPressed = true;
+            Toast.makeText(this, "Press back again to quit", Toast.LENGTH_SHORT).show();
+        }else{
+            long temp = System.currentTimeMillis()-time;
+            System.out.println(temp);
+            if(temp<400) {
+                finish();
+            }else {
+                searchView.setIconified(true);
+                time = System.currentTimeMillis();
+                Toast.makeText(this, "Press back again to quit", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+
     }
     public boolean isNetworkAvailable(final Context context) {
         final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
@@ -107,8 +130,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public class RetrieveList extends AsyncTask<String, Integer, ArrayList<Pokemon>> {
         int progress=0;
         JSONArray pokemon;
+        boolean conError;
         int total;
         ArrayList<Pokemon> pok;
+        final int TIMEOUT = 4000;
 
         @Override
         protected ArrayList<Pokemon> doInBackground(String... params) {
@@ -116,12 +141,16 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 pok = new ArrayList<>();
                 URL url = new URL(params[0]);
                 URLConnection con = url.openConnection();
+                con.setConnectTimeout(TIMEOUT);
+                con.setReadTimeout(TIMEOUT);
                 String encoding = con.getContentEncoding();
                 encoding = encoding == null ? "UTF-8" : encoding;
                 total = 700;
-                for(int x=0; x<(int)(total/20); x++){
+                for(int x = 0; x< total/20; x++){
                     URL url_iterate = new URL(params[0]+"?offset="+x*20);
                     URLConnection con_iterate = url_iterate.openConnection();
+                    con_iterate.setConnectTimeout(TIMEOUT);
+                    con_iterate.setReadTimeout(TIMEOUT);
                     InputStream input = con_iterate.getInputStream();
                     String in_raw = IOUtils.toString(input, encoding);
                     JSONObject result_object_iterate = new JSONObject(in_raw);
@@ -143,8 +172,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 }
 
                 return pok;
+            } catch (SocketTimeoutException e){
+                conError = true;
+                return pok;
             } catch (Exception e) {
-                return null;
+                e.printStackTrace();
+                return pok;
             }
         }
         void updateProgress(){
@@ -173,8 +206,14 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         protected void onPostExecute(ArrayList<Pokemon> result) {
             super.onPostExecute(result);
             adapter.updateData(result);
+            if(conError){
+                connection.setVisibility(View.VISIBLE);
+            }
+
             bar.setVisibility(View.INVISIBLE);
             searchView.setVisibility(View.VISIBLE);
         }
+
+
     }
 }
