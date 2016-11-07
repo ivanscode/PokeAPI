@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     String api_url = "http://pokeapi.co/api/v2/pokemon/";
     SearchView searchView;
     ListAdapter adapter;
+    int previous_item=20;
     long time;
     boolean firstPressed = false;
     @Override
@@ -64,7 +66,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     adapter.expand(x, false);
                 }
                 adapter.expand(position, true);
-                searchView.setIconified(true);
+
+            }
+        });
+        mDrawerList.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if(previous_item!=firstVisibleItem) {
+                    previous_item = firstVisibleItem;
+                    ArrayList<Integer> arr = new ArrayList<>();
+                    arr.add(firstVisibleItem);
+                    arr.add(firstVisibleItem + visibleItemCount);
+                    RetrieveItems t = new RetrieveItems();
+                    t.execute(arr);
+                }
 
             }
         });
@@ -77,8 +96,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             Toast.makeText(this, "Press back again to quit", Toast.LENGTH_SHORT).show();
         }else{
             long temp = System.currentTimeMillis()-time;
-            System.out.println(temp);
-            if(temp<400) {
+            if(temp<500) {
                 finish();
             }else {
                 searchView.setIconified(true);
@@ -146,6 +164,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 String encoding = con.getContentEncoding();
                 encoding = encoding == null ? "UTF-8" : encoding;
                 total = 700;
+                String image_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+0+".png";
+                Bitmap icon;
+                InputStream input_pic = new java.net.URL(image_url).openStream();
+                icon = BitmapFactory.decodeStream(input_pic);
                 for(int x = 0; x< total/20; x++){
                     URL url_iterate = new URL(params[0]+"?offset="+x*20);
                     URLConnection con_iterate = url_iterate.openConnection();
@@ -158,15 +180,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     for(int i=0; i<pokemon.length(); i++){
                         String temp = pokemon.getJSONObject(i).getString("name");
                         temp = temp.substring(0, 1).toUpperCase() + temp.substring(1);
-                        String image_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+((x*20)+i+1)+".png";
-                        Bitmap icon;
-                        try {
-                            InputStream input_pic = new java.net.URL(image_url).openStream();
-                            icon = BitmapFactory.decodeStream(input_pic);
-                            pok.add(new Pokemon(temp, icon));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        pok.add(new Pokemon(temp, icon, false, x*20+i));
                         updateProgress();
                     }
                 }
@@ -195,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             super.onProgressUpdate(values);
             try {
                 bar.setMax(total + 3);
-                adapter.updateData(pok);
+                adapter.setInitialData(pok);
                 searchView.setVisibility(View.INVISIBLE);
             }catch (Exception e){
                 bar.setMax(3);
@@ -205,13 +219,69 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         protected void onPostExecute(ArrayList<Pokemon> result) {
             super.onPostExecute(result);
-            adapter.updateData(result);
+            adapter.setInitialData(result);
             if(conError){
                 connection.setVisibility(View.VISIBLE);
             }
 
             bar.setVisibility(View.INVISIBLE);
             searchView.setVisibility(View.VISIBLE);
+        }
+
+
+    }
+    public class RetrieveItems extends AsyncTask<ArrayList<Integer>, Integer, ArrayList<Pokemon>> {
+        boolean conError;
+        int total;
+        ArrayList<Pokemon> pok;
+        int firstItem;
+        int lastItem;
+
+        @Override
+        protected ArrayList<Pokemon> doInBackground(ArrayList<Integer>... params) {
+            try {
+                pok = new ArrayList<>(adapter.getFilteredPokemon());
+                firstItem = params[0].get(0);
+                lastItem = params[0].get(1);
+                total = 700;
+                for(int i=firstItem; i<lastItem; i++){
+                    if(!adapter.getItemStatus(firstItem+i)) {
+                        Pokemon temp = pok.get(firstItem+i);
+                        String image_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + (temp.getPosition()+1) + ".png";
+                        Bitmap icon;
+                        try {
+                            InputStream input_pic = new java.net.URL(image_url).openStream();
+                            icon = BitmapFactory.decodeStream(input_pic);
+                            temp.setBitmap(icon);
+                            temp.setLoaded(true);
+                            pok.set(firstItem+i, temp);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                return pok;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return pok;
+            }
+        }
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+        }
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            adapter.updateData(pok);
+        }
+        @Override
+        protected void onPostExecute(ArrayList<Pokemon> result) {
+            super.onPostExecute(result);
+            adapter.updateData(result);
+            if(conError){
+                connection.setVisibility(View.VISIBLE);
+            }
         }
 
 

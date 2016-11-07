@@ -41,17 +41,26 @@ public class ListAdapter extends BaseAdapter implements Filterable {
         return filteredPokemon.size();
     }
 
+    public ArrayList<Pokemon> getFilteredPokemon(){
+        return filteredPokemon;
+    }
     public Object getItem(int position) {
         return filteredPokemon.get(position);
+    }
+    public boolean getItemStatus(int position){
+        return filteredPokemon.get(position).isLoaded();
     }
 
     public long getItemId(int position) {
         return position;
     }
-    public void updateData(ArrayList<Pokemon> data){
+    public void setInitialData(ArrayList<Pokemon> data){
         unfiltered = new ArrayList<>(data);
-        filteredPokemon = new ArrayList<>();
-        filteredPokemon = (ArrayList)unfiltered.clone();
+        filteredPokemon = new ArrayList<>(unfiltered);
+        notifyDataSetChanged();
+    }
+    public void updateData(ArrayList<Pokemon> data){
+        filteredPokemon = new ArrayList<>(data);
         notifyDataSetChanged();
     }
 
