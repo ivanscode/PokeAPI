@@ -34,6 +34,7 @@ import ivan.is.awesome.api.object.Pokemon;
 import ivan.is.awesome.api.R;
 import ivan.is.awesome.api.util.ListAdapter;
 
+@SuppressWarnings("unchecked")
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener{
     ProgressBar bar;
     ImageView connection;
@@ -62,11 +63,17 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                for(int x=0; x<adapter.getCount(); x++){
-                    adapter.expand(x, false);
+                if(adapter.getExpandedStatus(position)){
+                    adapter.expand(position, false);
+                }else{
+                    for(int x=0; x<adapter.getCount(); x++){
+                        adapter.expand(x, false);
+                    }
+                    adapter.expand(position, true);
+                    adapter.clearAbilities();
+                    SpecificData t = new SpecificData();
+                    t.execute(adapter.getItemPosition(position));
                 }
-                adapter.expand(position, true);
-
             }
         });
         mDrawerList.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -180,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     for(int i=0; i<pokemon.length(); i++){
                         String temp = pokemon.getJSONObject(i).getString("name");
                         temp = temp.substring(0, 1).toUpperCase() + temp.substring(1);
-                        pok.add(new Pokemon(temp, icon, false, x*20+i));
+                        pok.add(new Pokemon(temp, icon, false, x*20+i+1));
                         updateProgress();
                     }
                 }
@@ -247,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 for(int i=firstItem; i<lastItem; i++){
                     if(!adapter.getItemStatus(firstItem+i)) {
                         Pokemon temp = pok.get(firstItem+i);
-                        String image_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + (temp.getPosition()+1) + ".png";
+                        String image_url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/" + (temp.getPosition()) + ".png";
                         Bitmap icon;
                         try {
                             InputStream input_pic = new java.net.URL(image_url).openStream();
@@ -282,6 +289,52 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             if(conError){
                 connection.setVisibility(View.VISIBLE);
             }
+        }
+
+
+    }
+    public class SpecificData extends AsyncTask<Integer, Integer, ArrayList<String>> {
+        boolean conError;
+        @Override
+        protected ArrayList<String> doInBackground(Integer... params) {
+            ArrayList<String> strings = new ArrayList<>();
+            try {
+                URL url = new URL(api_url+params[0]);
+                URLConnection con = url.openConnection();
+                String encoding = con.getContentEncoding();
+                encoding = encoding == null ? "UTF-8" : encoding;
+                InputStream input = con.getInputStream();
+                String in_raw = IOUtils.toString(input, encoding);
+                JSONObject result_object = new JSONObject(in_raw);
+                JSONArray array = result_object.getJSONArray("abilities");
+                for(int x=0; x<array.length(); x++){
+                    JSONObject abilities = array.getJSONObject(x);
+                    JSONObject ability = abilities.getJSONObject("ability");
+                    String temp = ability.getString("name") ;
+                    temp = temp.substring(0, 1).toUpperCase() + temp.substring(1);
+                    strings.add(temp);
+                }
+                return strings;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return strings;
+            }
+        }
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+        }
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+        @Override
+        protected void onPostExecute(ArrayList<String> result) {
+            super.onPostExecute(result);
+            if(conError){
+                connection.setVisibility(View.VISIBLE);
+            }
+            adapter.setSpecificData(result);
         }
 
 

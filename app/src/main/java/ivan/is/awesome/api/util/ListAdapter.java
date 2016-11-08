@@ -22,6 +22,7 @@ public class ListAdapter extends BaseAdapter implements Filterable {
     private static LayoutInflater inflater=null;
     private ArrayList<Pokemon> unfiltered = new ArrayList<>();
     private ArrayList<Pokemon> filteredPokemon = new ArrayList<>();
+    private ArrayList<String> abilities = new ArrayList<>();
 
 
     public ListAdapter(Activity a, ArrayList<Pokemon> p){
@@ -29,6 +30,9 @@ public class ListAdapter extends BaseAdapter implements Filterable {
         inflater = (LayoutInflater)a.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void clearAbilities(){
+        abilities.clear();
+    }
     public void expand(int position, boolean set){
             Pokemon temp = filteredPokemon.get(position);
             temp.setExpansion(set);
@@ -41,6 +45,10 @@ public class ListAdapter extends BaseAdapter implements Filterable {
         return filteredPokemon.size();
     }
 
+    public void setSpecificData(ArrayList<String> arr){
+        abilities = new ArrayList<>(arr);
+        notifyDataSetChanged();
+    }
     public ArrayList<Pokemon> getFilteredPokemon(){
         return filteredPokemon;
     }
@@ -50,9 +58,15 @@ public class ListAdapter extends BaseAdapter implements Filterable {
     public boolean getItemStatus(int position){
         return filteredPokemon.get(position).isLoaded();
     }
+    public boolean getExpandedStatus(int position){
+        return filteredPokemon.get(position).isExpanded();
+    }
 
     public long getItemId(int position) {
         return position;
+    }
+    public int getItemPosition(int position) {
+        return filteredPokemon.get(position).getPosition();
     }
     public void setInitialData(ArrayList<Pokemon> data){
         unfiltered = new ArrayList<>(data);
@@ -64,18 +78,29 @@ public class ListAdapter extends BaseAdapter implements Filterable {
         notifyDataSetChanged();
     }
 
-    @SuppressLint({"ViewHolder", "InflateParams"})
+    @SuppressLint({"ViewHolder", "InflateParams", "SetTextI18n"})
     public View getView(int position, View convertView, ViewGroup parent) {
         if(!filteredPokemon.get(position).isExpanded()) {
             convertView = inflater.inflate(R.layout.list_layout, null);
         }
         else{
             convertView = inflater.inflate(R.layout.expanded_list_layout, null);
+            TextView ab1 = (TextView)convertView.findViewById(R.id.ability1);
+            TextView ab2 = (TextView)convertView.findViewById(R.id.ability2);
+            if(abilities.size()>0 && abilities.size()<2) {
+                ab1.setText("1. " + abilities.get(0));
+                ab2.setText("");
+            }
+            if(abilities.size()>1){
+                ab1.setText("1. " + abilities.get(0));
+                ab2.setText("2. " + abilities.get(1));
+            }
+
         }
-            TextView title = (TextView)convertView.findViewById(R.id.title); // title
-            ImageView imageView = (ImageView)convertView.findViewById(R.id.list_image);
-            imageView.setImageBitmap(filteredPokemon.get(position).getPic_pos());
-            title.setText(filteredPokemon.get(position).getName());
+        TextView title = (TextView)convertView.findViewById(R.id.title); // title
+        ImageView imageView = (ImageView)convertView.findViewById(R.id.list_image);
+        imageView.setImageBitmap(filteredPokemon.get(position).getPic_pos());
+        title.setText(filteredPokemon.get(position).getName());
         return convertView;
     }
 

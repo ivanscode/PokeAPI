@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/list_selector"
@@ -11,12 +12,15 @@
         android:layout_height="wrap_content"
         android:padding="3dip"
         android:layout_alignParentLeft="true"
-        android:layout_marginRight="5dip">
+        android:layout_marginRight="5dip"
+        tools:ignore="RtlHardcoded">
         <ImageView
             android:id="@+id/list_image"
             android:layout_width="50dip"
             android:layout_height="50dip"
-            android:src="@drawable/play"/>
+            android:src="@drawable/play"
+            android:contentDescription="Pokemon Image"
+            tools:ignore="HardcodedText" />
     </LinearLayout>
     <!-- Title Of Song-->
     <TextView
@@ -28,7 +32,8 @@
         android:text="Null"
         android:textColor="@android:color/holo_green_light"
         android:typeface="monospace"
-        android:textSize="20dip"
-        android:textStyle="bold"/>
+        android:textSize="20sp"
+        android:textStyle="bold"
+        tools:ignore="HardcodedText,RtlHardcoded" />
 </RelativeLayout>
 

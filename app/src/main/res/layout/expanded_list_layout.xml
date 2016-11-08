@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
-    android:layout_height="400dip"
+    android:layout_height="fill_parent"
     android:background="@drawable/list_selector"
     android:orientation="horizontal"
     android:padding="5dip" >
-    <!-- Title Of Song-->
 
     <ImageView
         android:id="@+id/list_image"
@@ -13,25 +13,62 @@
         android:layout_height="75dip"
         android:src="@drawable/play"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <LinearLayout
+        android:layout_centerHorizontal="true"
+        android:contentDescription="Pokemon Image"
+        tools:ignore="HardcodedText" />
+    <TextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="50dp"
-        android:layout_centerHorizontal="true">
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Null"
-            android:textColor="@android:color/holo_green_light"
-            android:typeface="monospace"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginTop="25dp" />
-    </LinearLayout>
+        android:gravity="center"
+        android:text="Null"
+        android:layout_below="@id/list_image"
+        android:textColor="@android:color/holo_green_light"
+        android:typeface="monospace"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="25dp"
+        tools:ignore="HardcodedText" />
+    <TextView
+        android:text="Abilities:"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:textColor="@android:color/holo_green_light"
+        android:typeface="monospace"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_below="@id/title"
+        android:id="@+id/abTitle"
+        tools:ignore="HardcodedText,RtlHardcoded" />
+    <TextView
+        android:text="1. "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:textColor="@android:color/holo_green_light"
+        android:typeface="monospace"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_below="@id/abTitle"
+        android:id="@+id/ability1"
+        tools:ignore="HardcodedText,RtlHardcoded" />
+    <TextView
+        android:text="2. "
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ability1"
+        android:textColor="@android:color/holo_green_light"
+        android:typeface="monospace"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/ability2"
+        tools:ignore="HardcodedText,RtlHardcoded" />
+
+
+
 
 </RelativeLayout>
 
